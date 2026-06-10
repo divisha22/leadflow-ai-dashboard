@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>LeadFlow AI — Voice Agent Dashboard</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#1D9E75;--green-dark:#0F6E56;--green-light:#E1F5EE;--green-text:#085041;
+  --bg:#F4F6F8;--border:rgba(0,0,0,0.09);--text:#1a1a1a;--text2:#6b7280;--text3:#9ca3af;
+  --r:10px;--rs:6px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+button{cursor:pointer;font-family:inherit}
+input,select,textarea{font-family:inherit;font-size:14px}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--green)!important;box-shadow:0 0 0 3px rgba(29,158,117,0.12)}
+nav{background:#fff;border-bottom:1px solid var(--border);padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:36px;height:36px;border-radius:9px;background:var(--green);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.brand-name{font-size:15px;font-weight:600;line-height:1.2}
+.brand-sub{font-size:11px;color:var(--text2);line-height:1.2}
+.live-badge{display:flex;align-items:center;gap:6px;font-size:12px;background:var(--green-light);color:var(--green-text);padding:5px 12px;border-radius:20px;font-weight:500}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--green)}
+main{padding:24px;max-width:1200px;margin:0 auto}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.stat{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:18px 20px}
+.stat-label{font-size:12px;color:var(--text2);margin-bottom:6px}
+.stat-value{font-size:28px;font-weight:600;letter-spacing:-0.5px}
+.chart-box{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:24px}
+.chart-title{font-size:13px;font-weight:500;color:var(--text2);margin-bottom:16px}
+.bars{display:flex;align-items:flex-end;gap:12px;height:130px}
+.bar-group{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1}
+.bar-fill{width:100%;border-radius:6px 6px 0 0;min-height:4px}
+.bar-label{font-size:11px;color:var(--text2);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80px}
+.bar-count{font-size:11px;font-weight:600;color:var(--text)}
+.controls{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.controls input{flex:1;min-width:180px;padding:9px 14px;border:1px solid #e5e7eb;border-radius:var(--r);background:#fff}
+.controls select{padding:9px 14px;border:1px solid #e5e7eb;border-radius:var(--r);background:#fff;color:var(--text)}
+.add-btn{padding:9px 18px;background:var(--green);color:#fff;border:none;border-radius:var(--r);font-size:14px;font-weight:500;white-space:nowrap}
+.add-btn:hover{background:var(--green-dark)}
+.table-wrap{background:#fff;border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.table-scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead tr{background:#f9fafb}
+th{padding:10px 16px;text-align:left;font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.06em;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:12px 16px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr.data-row:hover td{background:#f9fafb}
+.issue-cell{max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text2)}
+.time-cell{color:var(--text2);white-space:nowrap}
+.name-cell{font-weight:500}
+.phone-cell{color:var(--text2)}
+.table-footer{padding:10px 16px;font-size:12px;color:var(--text3);border-top:1px solid var(--border)}
+.empty-row td{padding:40px;text-align:center;color:var(--text3)}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:500;white-space:nowrap}
+.badge-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.s-new{background:#EFF6FF;color:#1D4ED8}.s-new .badge-dot{background:#3B82F6}
+.s-pending{background:#FFFBEB;color:#92400E}.s-pending .badge-dot{background:#F59E0B}
+.s-called{background:#F5F3FF;color:#5B21B6}.s-called .badge-dot{background:#8B5CF6}
+.s-converted{background:#ECFDF5;color:#065F46}.s-converted .badge-dot{background:#10B981}
+.s-notint{background:#FEF2F2;color:#991B1B}.s-notint .badge-dot{background:#EF4444}
+.edit-btn{padding:5px 10px;font-size:12px;background:none;border:1px solid #e5e7eb;border-radius:var(--rs);color:var(--text2);margin-right:6px}
+.edit-btn:hover{background:#f3f4f6}
+.del-btn{padding:5px 10px;font-size:12px;background:none;border:1px solid #fecaca;border-radius:var(--rs);color:#dc2626}
+.del-btn:hover{background:#fef2f2}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:200;padding:16px}
+.modal{background:#fff;border-radius:var(--r);padding:28px;width:440px;max-width:100%;max-height:90vh;overflow-y:auto}
+.modal-title{font-size:17px;font-weight:600;margin-bottom:22px}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:12px;color:var(--text2);margin-bottom:5px}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:9px 12px;border:1px solid #e5e7eb;border-radius:var(--r)}
+.form-group textarea{resize:vertical;min-height:72px}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:22px}
+.cancel-btn{padding:9px 18px;background:none;border:1px solid #e5e7eb;border-radius:var(--r);font-size:14px;color:var(--text2)}
+.save-btn{padding:9px 18px;background:var(--green);color:#fff;border:none;border-radius:var(--r);font-size:14px;font-weight:500}
+.save-btn:hover{background:var(--green-dark)}
+@media(max-width:700px){.stats{grid-template-columns:repeat(2,1fr)}.stat-value{font-size:22px}}
+</style>
+</head>
+<body>
+<nav>
+  <div class="brand">
+    <div class="logo">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.63a19.79 19.79 0 01-3.07-8.67A2 2 0 012 .85h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.74a16 16 0 006.29 6.29l1.06-1.06a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+    </div>
+    <div>
+      <div class="brand-name">LeadFlow AI</div>
+      <div class="brand-sub">AI Voice Agent Dashboard</div>
+    </div>
+  </div>
+  <div class="live-badge"><div class="live-dot"></div>Live</div>
+</nav>
+<main>
+  <div class="stats" id="stats"></div>
+  <div class="chart-box">
+    <div class="chart-title">Leads by business type</div>
+    <div class="bars" id="chart"></div>
+  </div>
+  <div class="controls">
+    <input type="text" id="search" placeholder="Search by name or business type..." oninput="render()"/>
+    <select id="fst" onchange="render()">
+      <option value="">All statuses</option>
+      <option>New</option><option>Pending</option><option>Called Back</option><option>Converted</option><option>Not Interested</option>
+    </select>
+    <button class="add-btn" onclick="openModal()">+ Add lead</button>
+  </div>
+  <div class="table-wrap">
+    <div class="table-scroll">
+      <table>
+        <thead><tr>
+          <th>Name</th><th>Phone</th><th>Business</th><th>Issue</th><th>Date & Time</th><th>Status</th><th>Actions</th>
+        </tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div class="table-footer" id="footer"></div>
+  </div>
+</main>
+<div class="overlay" id="overlay" style="display:none" onclick="handleOverlay(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title" id="modal-title">Add new lead</div>
+    <div class="form-group"><label>Name</label><input type="text" id="f-name" placeholder="John Smith"/></div>
+    <div class="form-group"><label>Phone</label><input type="text" id="f-phone" placeholder="+1 555 000 0000"/></div>
+    <div class="form-group"><label>Business type</label>
+      <select id="f-biz"><option>Plumbing</option><option>HVAC</option><option>Dental</option><option>Real Estate</option><option>Other</option></select>
+    </div>
+    <div class="form-group"><label>Issue / reason for call</label>
+      <textarea id="f-issue" placeholder="Describe the issue..."></textarea>
+    </div>
+    <div class="form-group"><label>Status</label>
+      <select id="f-status"><option>New</option><option>Pending</option><option>Called Back</option><option>Converted</option><option>Not Interested</option></select>
+    </div>
+    <div class="modal-actions">
+      <button class="cancel-btn" onclick="closeModal()">Cancel</button>
+      <button class="save-btn" onclick="saveLead()">Save lead</button>
+    </div>
+  </div>
+</div>
+<script>
+var leads=[
+  {id:1,name:'Mike Torres',  phone:'+1 512 555 0143',biz:'Plumbing',   issue:'Burst pipe under kitchen sink, urgent fix needed',       time:'2025-06-08 09:14',status:'Converted'},
+  {id:2,name:'Sarah Nguyen', phone:'+61 412 555 078', biz:'Dental',    issue:'Tooth pain for 3 days, wants emergency appointment',     time:'2025-06-08 11:32',status:'Called Back'},
+  {id:3,name:'James Okafor', phone:'+1 713 555 0287',biz:'HVAC',      issue:'AC not cooling, house at 90F, family with kids',         time:'2025-06-09 08:05',status:'New'},
+  {id:4,name:'Priya Mehta',  phone:'+1 415 555 0391',biz:'Real Estate',issue:'Looking to list 3BR in Austin, needs valuation',        time:'2025-06-09 13:47',status:'Pending'},
+  {id:5,name:'Connor Walsh', phone:'+44 7700 900456',biz:'Plumbing',  issue:'Blocked drain, slow water flow throughout the house',    time:'2025-06-10 07:22',status:'Not Interested'}
+];
+var nextId=6,editId=null;
+var SC={'New':'s-new','Pending':'s-pending','Called Back':'s-called','Converted':'s-converted','Not Interested':'s-notint'};
+var COLORS=['#1D9E75','#3B82F6','#8B5CF6','#F59E0B','#EF4444'];
+
+function getStats(){
+  var total=leads.length,conv=0,pend=0;
+  leads.forEach(function(l){if(l.status==='Converted')conv++;if(l.status==='New'||l.status==='Pending')pend++;});
+  return{total:total,conv:conv,pend:pend,rate:total?Math.round(conv/total*100):0};
+}
+function renderStats(){
+  var s=getStats();
+  var items=[{l:'Total leads',v:s.total,a:''},{l:'Converted',v:s.conv,a:'#1D9E75'},{l:'Pending',v:s.pend,a:'#F59E0B'},{l:'Conversion rate',v:s.rate+'%',a:'#3B82F6'}];
+  document.getElementById('stats').innerHTML=items.map(function(x){
+    return '<div class="stat" style="'+(x.a?'border-left:3px solid '+x.a:'')+'"><div class="stat-label">'+x.l+'</div><div class="stat-value" style="'+(x.a?'color:'+x.a:'')+'">'+x.v+'</div></div>';
+  }).join('');
+}
+function renderChart(){
+  var counts={};
+  leads.forEach(function(l){counts[l.biz]=(counts[l.biz]||0)+1;});
+  var entries=Object.entries(counts);
+  var max=Math.max.apply(null,entries.map(function(e){return e[1]}));
+  document.getElementById('chart').innerHTML=entries.map(function(e,i){
+    var h=max>0?Math.round((e[1]/max)*100):4;
+    return '<div class="bar-group"><div class="bar-count">'+e[1]+'</div><div class="bar-fill" style="height:'+h+'px;background:'+COLORS[i%COLORS.length]+'"></div><div class="bar-label">'+e[0]+'</div></div>';
+  }).join('');
+}
+function getFiltered(){
+  var q=document.getElementById('search').value.toLowerCase();
+  var fst=document.getElementById('fst').value;
+  return leads.filter(function(l){
+    return(!q||l.name.toLowerCase().indexOf(q)>=0||l.biz.toLowerCase().indexOf(q)>=0)&&(!fst||l.status===fst);
+  });
+}
+function render(){
+  renderStats();renderChart();
+  var rows=getFiltered();
+  var tbody=document.getElementById('tbody');
+  if(!rows.length){tbody.innerHTML='<tr class="empty-row"><td colspan="7">No leads found</td></tr>';document.getElementById('footer').textContent='';return;}
+  tbody.innerHTML=rows.map(function(l){
+    return '<tr class="data-row"><td class="name-cell">'+l.name+'</td><td class="phone-cell">'+l.phone+'</td><td>'+l.biz+'</td><td class="issue-cell" title="'+l.issue+'">'+l.issue+'</td><td class="time-cell">'+l.time+'</td><td><span class="badge '+SC[l.status]+'"><span class="badge-dot"></span>'+l.status+'</span></td><td><button class="edit-btn" onclick="editLead('+l.id+')">Edit</button><button class="del-btn" onclick="delLead('+l.id+')">Delete</button></td></tr>';
+  }).join('');
+  document.getElementById('footer').textContent='Showing '+rows.length+' of '+leads.length+' leads';
+}
+function openModal(id){
+  editId=id||null;
+  document.getElementById('modal-title').textContent=id?'Edit lead':'Add new lead';
+  if(id){var l=leads.find(function(x){return x.id===id});document.getElementById('f-name').value=l.name;document.getElementById('f-phone').value=l.phone;document.getElementById('f-biz').value=l.biz;document.getElementById('f-issue').value=l.issue;document.getElementById('f-status').value=l.status;}
+  else{document.getElementById('f-name').value='';document.getElementById('f-phone').value='';document.getElementById('f-biz').value='Plumbing';document.getElementById('f-issue').value='';document.getElementById('f-status').value='New';}
+  document.getElementById('overlay').style.display='flex';
+}
+function closeModal(){document.getElementById('overlay').style.display='none';}
+function handleOverlay(e){if(e.target===document.getElementById('overlay'))closeModal();}
+function saveLead(){
+  var name=document.getElementById('f-name').value.trim();
+  var phone=document.getElementById('f-phone').value.trim();
+  if(!name||!phone){alert('Name and phone are required.');return;}
+  var biz=document.getElementById('f-biz').value,issue=document.getElementById('f-issue').value,status=document.getElementById('f-status').value;
+  if(editId){var i=leads.findIndex(function(x){return x.id===editId});leads[i]={id:editId,name:name,phone:phone,biz:biz,issue:issue,time:leads[i].time,status:status};}
+  else{var now=new Date();var t=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')+' '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');leads.unshift({id:nextId++,name:name,phone:phone,biz:biz,issue:issue,time:t,status:status});}
+  closeModal();render();
+}
+function editLead(id){openModal(id);}
+function delLead(id){if(confirm('Delete this lead?')){leads=leads.filter(function(l){return l.id!==id});render();}}
+render();
+</script>
+</body>
+</html>
